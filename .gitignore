@@ -1,0 +1,68 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+db.sqlite3
+*.env
+
+RTCvenv/
+
+# Django
+*.log
+local_settings.py
+staticfiles/
+media/
+node_modules/
+
+
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.project
+*.pydevproject
+
+
+
+
+
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log*
+
+# Build output
+build/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.project
+*.pydevproject
+
+# Environment files
+.env
+.env.local
+.env.*.local
