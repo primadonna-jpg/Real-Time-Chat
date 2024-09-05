@@ -36,9 +36,9 @@ const Register = () => {
       setError(`${error.message}`);
       console.log(`${error.message}`);
     }
-    console.log(user);
+    
     setUsername('');
-    console.log(user);
+    
   };
 
   return (
@@ -47,15 +47,15 @@ const Register = () => {
         <div className="col-md-6">
           <div className="card mt-5">
             <div className="card-body">
-              <h2 className="card-title text-center">Zarejestruj się</h2>
+              <h2 className="card-title text-center">Create an account</h2>
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label htmlFor="username">Nazwa użytkownika</label>
+                  <label htmlFor="username">Username</label>
                   <input
                     type="text"
                     className="form-control"
                     id="username"
-                    placeholder="Wprowadź nazwę użytkownika"
+                    placeholder="Enter username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -67,29 +67,34 @@ const Register = () => {
                     type="email"
                     className="form-control"
                     id="email"
-                    placeholder="Wprowadź email"
+                    placeholder="Enter email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="password">Hasło</label>
+                  <label htmlFor="password">Password</label>
                   <input
                     type="password"
                     className="form-control"
                     id="password"
-                    placeholder="Wprowadź hasło"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
                 <button type="submit" className="btn btn-primary btn-block">
-                  Zarejestruj się
+                  Submit
                 </button>
                 {error && <p className="text-danger mt-3">{error}</p>}
               </form>
+
+              <a className='small' onClick={()=> navigate('/login')} >
+                Already have an account? Log in
+              </a>
+
             </div>
           </div>
         </div>

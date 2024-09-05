@@ -1,10 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from './utils/logout';
+import { jwtDecode } from 'jwt-decode';
+
 
 const Header = () => {
   const navigate = useNavigate();
   const access = localStorage.getItem('access');
+  let username = '';
+
+  if(access){
+    try{
+      const decodedToken = jwtDecode(access);
+      
+      username = decodedToken.username || 'Unknown';
+    }catch (e) {
+      console.error('Błąd dekodowania tokenu:', e);
+    }
+  }
 
   return (
     <header>
@@ -13,7 +26,7 @@ const Header = () => {
           <div className="ml-4 navbar-left">
             {access ? (
               <div className="d-flex align-items-center">
-                <span className="mr-3 h5 text-gray-600">Zalogowany</span>
+                <span className="mr-3 h5 text-gray-600">{username}</span>
                 <button 
                   className="btn btn-outline-danger btn-sm" 
                   onClick={() => logout(navigate)}
@@ -22,7 +35,7 @@ const Header = () => {
                 </button>
               </div>
             ) : (
-              <span className="h5 text-gray-600">Nie jesteś zalogowany</span>
+              <span className="h5 text-gray-600" >Login</span>
             )}
           </div>
         </div>
