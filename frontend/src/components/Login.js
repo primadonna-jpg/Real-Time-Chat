@@ -22,12 +22,8 @@ const Login = () => {
       });
 
 
-      console.log('Response status:', response.status); //console.log
-      console.log('Response headers:', response.headers);
-      const data = await response.json(); ///////
-      console.log(data);
-
       
+      const data = await response.json(); 
 
       if (response.ok) {
         localStorage.setItem('access', data.access);
@@ -35,13 +31,14 @@ const Login = () => {
         localStorage.setItem('username', username)
         navigate('/login');   // dodać scieżkę do przekierowania po logowaniu
       } else {
-        
-        setError(data.detail || 'Logowanie nieudane');
+        setError(Object.values(data)[0] || 'Logowanie nieudane');
       }
     } catch (error) {
       setError(`${error.message}`);
       console.log(`${error.message}`);
     }
+
+    setUsername('');
   };
 
   return (
@@ -50,37 +47,42 @@ const Login = () => {
         <div className="col-md-6">
           <div className="card mt-5">
             <div className="card-body">
-              <h2 className="card-title text-center">Zaloguj się</h2>
+              <h2 className="card-title text-center">Log in</h2>
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label htmlFor="username">Nazwa użytkownika</label>
+                  <label htmlFor="username">Username</label>
                   <input
                     type="text"
                     className="form-control"
                     id="username"
-                    placeholder="Wprowadź nazwę użytkownika"
+                    placeholder="Enter username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="password">Hasło</label>
+                  <label htmlFor="password">Password</label>
                   <input
                     type="password"
                     className="form-control"
                     id="password"
-                    placeholder="Wprowadź hasło"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
                 <button type="submit" className="btn btn-primary btn-block">
-                  Zaloguj
+                  Submit
                 </button>
                 {error && <p className="text-danger mt-3">{error}</p>}
               </form>
+
+              <a className='small' onClick={()=> navigate('/register')} >
+                Create account
+              </a>
+
             </div>
           </div>
         </div>
