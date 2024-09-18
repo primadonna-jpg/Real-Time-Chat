@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Header from './components/Header';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import ChatList from './components/ChatList';
 function App() {
   return (
     <div>
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/ChatList" element={<ChatList />} />
         {/* Inne trasy */}
       </Routes>
     </div>

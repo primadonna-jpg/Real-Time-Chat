@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'channels',
+    'daphne',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -72,7 +73,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
@@ -86,6 +87,8 @@ CHANNEL_LAYERS = {
 }
 
 
+
+ASGI_APPLICATION = 'RTCDjango.asgi.application'
 ################################################################
 
 ROOT_URLCONF = 'RTCDjango.urls'
