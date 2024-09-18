@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from .serializers import RegisterSerializer, UserSerializer, CustomTokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import status
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
@@ -27,7 +28,7 @@ class LogoutView(APIView):
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(status=205)
+            return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response(status=400)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
