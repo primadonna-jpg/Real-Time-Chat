@@ -7,9 +7,9 @@ const ChatList = () => {
   const [newChatUser, setNewChatUser] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const token = localStorage.getItem('access'); // token z localStorage
   useEffect(() => {
     // Pobieranie listy czatów użytkownika
-    const token = localStorage.getItem('access'); // Pobieranie tokena z localStorage
     fetch('http://127.0.0.1:8000/chat/rooms/', {
       method: 'GET',
       headers: {
@@ -56,7 +56,7 @@ const ChatList = () => {
   return (
     <div className="d-flex">
       {/* Lista czatów */}
-      <div className="card shadow mb-4" style={{ width: '300px' }}>
+      <div className="card shadow mb-4" style={{ width: '300px'}}>
         <div className="card-header py-3 d-flex justify-content-between align-items-center">
           <h6 className="m-0 font-weight-bold text-primary">Your Chats</h6>
           <div>
@@ -92,7 +92,7 @@ const ChatList = () => {
       {/* Okno czatu */}
       <div style={{ flex: 1, marginLeft: '20px' }}>
         {selectedChat ? (
-          <ChatWindow chat={selectedChat} />  
+          <ChatWindow chat={selectedChat} token={token}/>  
         ) : (
           <div className="card shadow mb-4">
             <div className="card-body">

@@ -29,7 +29,7 @@ const Login = () => {
         localStorage.setItem('access', data.access);
         localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('username', username)
-        navigate('/login');   // dodać scieżkę do przekierowania po logowaniu
+        navigate('/chatlist');   // dodać scieżkę do przekierowania po logowaniu
       } else {
         setError(Object.values(data)[0] || 'Logowanie nieudane');
       }
