@@ -6,7 +6,7 @@ const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null); // Przechowuje wybrany czat
   const [newChatUser, setNewChatUser] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const {token} = useContext(AuthContext);
+  const {token,currentUser} = useContext(AuthContext);
   
   useEffect(() => {
     // Pobieranie listy czatów użytkownika
@@ -16,9 +16,16 @@ const ChatList = () => {
         'Authorization': `Bearer ${token}`,
       },
     })
-      .then(response => response.json())
+      .then(response => {
+        if(response.ok){
+          return response.json();
+        }else {
+          throw new Error('Failed to fetch chats');
+        }
+      })
       .then(data => setChats(data))
       .catch(error => console.log(error));
+      
   }, []);
 
   const handleCreateChat = () => {
@@ -52,6 +59,8 @@ const ChatList = () => {
         setErrorMessage(error.message);
       });
   };
+
+
 
   return (
     <div className="d-flex">
@@ -92,7 +101,7 @@ const ChatList = () => {
       {/* Okno czatu */}
       <div style={{ flex: 1, marginLeft: '20px' }}>
         {selectedChat ? (
-          <ChatWindow chat={selectedChat} token={token}/>  
+          <ChatWindow chat={selectedChat} token={token} currentUser={currentUser}/>  
         ) : (
           <div className="card shadow mb-4">
             <div className="card-body">

@@ -6,7 +6,7 @@ import { AuthContext } from './utils/AuthProvider';
 
 const Header = () => {
   const navigate = useNavigate();
-  const {token, setNewToken, logout} = useContext(AuthContext);
+  const {token, logout} = useContext(AuthContext);
   let username = '';
 
   console.log(token);

@@ -49,7 +49,7 @@ const ChatWindow = ({ chat, token, currentUser }) => {
           {messages.map((message, index) => (
             <li 
               key={index} 
-              className={`list-group-item ${message.username === currentUser ? 'text-right bg-primary text-white' : 'text-left bg-light'}`}>
+              className={`list-group-item ${message.username === currentUser ? ' bg-primary text-white' : ' bg-light'}`}>
               <strong>{message.username === currentUser ? 'You' : message.username}:</strong> {message.content}
             </li>
           ))}
