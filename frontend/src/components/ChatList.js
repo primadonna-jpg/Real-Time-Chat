@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import ChatWindow from './ChatWindow';  // Importujemy ChatWindow
-
+import React, { useState, useEffect,useContext } from 'react';
+import ChatWindow from './ChatWindow';  //  ChatWindow
+import { AuthContext } from './utils/AuthProvider';
 const ChatList = () => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null); // Przechowuje wybrany czat
   const [newChatUser, setNewChatUser] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
-  const token = localStorage.getItem('access'); // token z localStorage
+  const {token} = useContext(AuthContext);
+  
   useEffect(() => {
     // Pobieranie listy czatów użytkownika
     fetch('http://127.0.0.1:8000/chat/rooms/', {

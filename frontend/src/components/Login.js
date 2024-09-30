@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { AuthContext } from './utils/AuthProvider';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const {token, setNewToken, logout} = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const user = { username, password };
 
     try {
@@ -21,15 +21,12 @@ const Login = () => {
         body: JSON.stringify(user),
       });
 
-
-      
       const data = await response.json(); 
 
       if (response.ok) {
-        localStorage.setItem('access', data.access);
+        setNewToken(data.access);// authprovider
         localStorage.setItem('refresh', data.refresh);
-        localStorage.setItem('username', username)
-        navigate('/chatlist');   // dodać scieżkę do przekierowania po logowaniu
+        navigate('/chatlist');   // przekierowanie po logowaniu
       } else {
         setError(Object.values(data)[0] || 'Logowanie nieudane');
       }
@@ -39,7 +36,11 @@ const Login = () => {
     }
 
     setUsername('');
+
   };
+
+
+
 
   return (
     <div className="container">
