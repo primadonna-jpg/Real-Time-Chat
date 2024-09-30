@@ -31,7 +31,7 @@ const Header = () => {
                   className="btn btn-outline-danger btn-sm" 
                   onClick={() => logout(navigate)}
                 >
-                  Wyloguj
+                  Logout
                 </button>
               </div>
             ) : (
