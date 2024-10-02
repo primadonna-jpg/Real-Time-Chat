@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from './utils/AuthProvider';
+
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const {baseURL} = useContext(AuthContext);
   const  navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -14,7 +17,7 @@ const Register = () => {
     const user = { username, email, password };
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/register/', {
+      const response = await fetch(`${baseURL}/auth/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

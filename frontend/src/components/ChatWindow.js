@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const ChatWindow = ({ chat, token, currentUser }) => {
+const ChatWindow = ({ chat, token, currentUser, baseURL }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const ws = useRef(null);  // Ref do połączenia WebSocket
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/chat/messages/?room_id=${chat.id}`, {
+    fetch(`${baseURL}/chat/messages/?room_id=${chat.id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -29,7 +29,8 @@ const ChatWindow = ({ chat, token, currentUser }) => {
     ////////////////////////////////////
     ///////// obsługa WEBSOCKET ////////
     const roomName = encodeURIComponent(chat.name);
-    ws.current = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${roomName}/?token=${token}`);
+    const trimmedUrl = baseURL.replace(/https?:\/\//, '');
+    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomName}/?token=${token}`);
 
     // Obsługa odbierania wiadomości
     ws.current.onmessage = (event) => {

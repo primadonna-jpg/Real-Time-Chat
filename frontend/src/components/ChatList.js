@@ -6,11 +6,11 @@ const ChatList = () => {
   const [selectedChat, setSelectedChat] = useState(null); // Przechowuje wybrany czat
   const [newChatUser, setNewChatUser] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const {token,currentUser} = useContext(AuthContext);
+  const {token,currentUser, baseURL} = useContext(AuthContext);
   
   useEffect(() => {
     // Pobieranie listy czatów podejściem fetch.then 
-    fetch('http://127.0.0.1:8000/chat/rooms/', {
+    fetch(`${baseURL}/chat/rooms/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -30,7 +30,7 @@ const ChatList = () => {
 
 
 
-  
+
   const handleCreateChat = () => {
     if (!newChatUser) {
       setErrorMessage('Please enter a username.');
@@ -39,7 +39,7 @@ const ChatList = () => {
 
     // Tworzenie nowego czatu (POST do API)
     const token = localStorage.getItem('access');
-    fetch('http://127.0.0.1:8000/chat/rooms/', {
+    fetch(`${baseURL}/chat/rooms/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ const ChatList = () => {
       {/* Okno czatu */}
       <div style={{ flex: 1, marginLeft: '20px' }}>
         {selectedChat ? (
-          <ChatWindow chat={selectedChat} token={token} currentUser={currentUser}/>  
+          <ChatWindow chat={selectedChat} token={token} currentUser={currentUser} baseURL={baseURL}/>  
         ) : (
           <div className="card shadow mb-4">
             <div className="card-body">
