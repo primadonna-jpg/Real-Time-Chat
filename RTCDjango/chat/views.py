@@ -56,6 +56,12 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.none()
     def get_queryset(self):
         user = self.request.user
+        room_id = self.request.query_params.get('room_id')
+
+        if not room_id:
+            return Message.objects.none()
+        
         return Message.objects.filter(
-            room__members=user
+            room__members=user,
+            room__id = room_id
         )

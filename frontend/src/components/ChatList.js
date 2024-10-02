@@ -9,7 +9,7 @@ const ChatList = () => {
   const {token,currentUser} = useContext(AuthContext);
   
   useEffect(() => {
-    // Pobieranie listy czatów użytkownika
+    // Pobieranie listy czatów podejściem fetch.then 
     fetch('http://127.0.0.1:8000/chat/rooms/', {
       method: 'GET',
       headers: {
@@ -18,7 +18,7 @@ const ChatList = () => {
     })
       .then(response => {
         if(response.ok){
-          return response.json();
+          return response.json();  //return przekazuje dane do kolejnego then
         }else {
           throw new Error('Failed to fetch chats');
         }
@@ -28,6 +28,9 @@ const ChatList = () => {
       
   }, []);
 
+
+
+  
   const handleCreateChat = () => {
     if (!newChatUser) {
       setErrorMessage('Please enter a username.');
