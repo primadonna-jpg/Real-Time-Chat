@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-!p-p%gq%z+d)d#cd^v!2k#id_gtxao1)v=po%muz(eykq&$awz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -59,9 +59,13 @@ MIDDLEWARE = [
 ]
 
 #####
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Adres  aplikacji React
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Adres  aplikacji React
+#     "http://192.168.100.55:3000",
+#     "http://192.168.100.2:3000",
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

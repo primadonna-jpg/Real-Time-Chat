@@ -6,14 +6,14 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const {token, setNewToken, logout} = useContext(AuthContext);
+  const {baseURL, setNewToken} = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = { username, password };
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/login/', {
+      const response = await fetch(`${baseURL}/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
