@@ -6,6 +6,28 @@ const ChatWindow = ({ chat, token, currentUser }) => {
   const ws = useRef(null);  // Ref do połączenia WebSocket
 
   useEffect(() => {
+    fetch(`http://127.0.0.1:8000/chat/messages/?room_id=${chat.id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+    .then(response =>{
+      if(response.ok){
+        return response.json();
+      }else{
+        throw new Error('Failed to load previous messages');
+      }
+    })
+    .then(data =>{
+      setMessages(data);
+    })
+    .catch(error =>{
+      console.log(error);
+    });
+    
+    ////////////////////////////////////
+    ///////// obsługa WEBSOCKET ////////
     const roomName = encodeURIComponent(chat.name);
     ws.current = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${roomName}/?token=${token}`);
 
@@ -14,7 +36,6 @@ const ChatWindow = ({ chat, token, currentUser }) => {
       const data = JSON.parse(event.data);
       setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username }]);
     };
-
     ws.current.onopen = () => {
       console.log('WebSocket connected');
     };
@@ -22,7 +43,7 @@ const ChatWindow = ({ chat, token, currentUser }) => {
       console.log('WebSocket disconnected');
     };
 
-    
+    setMessages([]); //kiedy chat.name się zmienia tablica messeges zostaje wyczyszczona
     return () => {
       ws.current.close();
     };
