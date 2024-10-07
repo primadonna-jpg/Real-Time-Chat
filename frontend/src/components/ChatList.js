@@ -65,10 +65,32 @@ const ChatList = () => {
 
 
 
+
+  const handleDelete = (chatId) => {
+    // Wywołanie API do usunięcia czatu
+    fetch(`${baseURL}/chat/rooms/${chatId}/`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (response.ok) {
+          setChats(chats.filter(chat => chat.id !== chatId));
+        } else {
+          throw new Error('Failed to delete chat');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+
   return (
-    <div className="d-flex">
+    <div className="d-flex" style={{ height: '90vh' }}>
       {/* Lista czatów */}
-      <div className="card shadow mb-4" style={{ width: '300px'}}>
+      <div className="card shadow mb-4" style={{ minwidth: '30vw', maxWidth: '40vw'}}>
         <div className="card-header py-3 d-flex justify-content-between align-items-center">
           <h6 className="m-0 font-weight-bold text-primary">Your Chats</h6>
           <div>
@@ -85,24 +107,30 @@ const ChatList = () => {
             {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
           </div>
         </div>
-        <div className="card-body">
+        <div className="card-body" >
           <ul className="list-group">
             {chats.map(chat => (
               <li
-                key={chat.id}
-                className="list-group-item list-group-item-action"
-                onClick={() => setSelectedChat(chat)}  // Ustawianie wybranego czatu
+              key={chat.id}
+              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              style={{ cursor: 'pointer' }}
+            >
+
+              <span onClick={() => setSelectedChat(chat)}>{chat.name}</span>
+
+              <i
+                className="fas fa-trash text-danger"
+                onClick={() => handleDelete(chat.id)}
                 style={{ cursor: 'pointer' }}
-              >
-                {chat.name}
-              </li>
+              >delete</i>
+            </li>
             ))}
           </ul>
         </div>
       </div>
 
       {/* Okno czatu */}
-      <div style={{ flex: 1, marginLeft: '20px' }}>
+      <div style={{ flex: 1, marginLeft: '3vw', marginRight: '3vw' }}>
         {selectedChat ? (
           <ChatWindow chat={selectedChat} token={token} currentUser={currentUser} baseURL={baseURL}/>  
         ) : (

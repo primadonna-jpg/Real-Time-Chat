@@ -61,7 +61,7 @@ const ChatWindow = ({ chat, token, currentUser, baseURL }) => {
   };
 
   return (
-    <div className="card shadow mb-4" style={{ width: '100%' }}>
+    <div className="card shadow mb-4 " style={{ maxwidth: '50vw', minWidth: '40vw'}} >
       <div className="card-header py-3">
         <h6 className="m-0 font-weight-bold text-primary">Chat with {chat.name}</h6>
       </div>
