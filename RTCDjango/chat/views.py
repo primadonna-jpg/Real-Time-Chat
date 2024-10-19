@@ -22,25 +22,30 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
 
         # Pobranie nazwy użytkownika z requestu
-        target_username = request.data.get('username')
-        if not target_username:
+        #target_username = request.data.get('username')
+        target_usersId = request.data.get('users')
+        if not target_usersId:
             return Response({'detail': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Sprawdzanie, czy użytkownik istnieje
         try:
-            target_user = User.objects.get(username=target_username)
+            target_users = User.objects.filter(id__in=target_usersId)
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
 
         current_user = self.request.user
         # Tworzenie nowego czatu z aktualnym i wybranym użytkownikiem
-        chat_name = f'{min(current_user.username, target_user.username)}-{max(current_user.username, target_user.username)}'
-        #chat_name = "chat1"
+        usernames = [user.username for user in target_users]
+        usernames.append(current_user.username)
+        sorted_usernames = sorted(usernames)
+        chat_name = '-'.join(sorted_usernames)
+        
         chat_room = ChatRoom.objects.create(name=chat_name)
-        chat_room.members.add(self.request.user, target_user)
+        chat_room.members.add(current_user)
+        chat_room.members.add(*target_users)
         chat_room.save()
 
-        # Serializowanie i odesłanie odpowiedzi
+        #Serializowanie i odesłanie odpowiedzi
         serializer = self.get_serializer(chat_room)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

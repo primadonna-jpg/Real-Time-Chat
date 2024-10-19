@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const ChatWindow = ({ chat, token, currentUser, baseURL }) => {
+const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const ws = useRef(null);  // Ref do połączenia WebSocket
@@ -71,8 +71,8 @@ const ChatWindow = ({ chat, token, currentUser, baseURL }) => {
           {messages.map((message, index) => (
             <li 
               key={index} 
-              className={`list-group-item ${message.username === currentUser ? ' bg-primary text-white' : ' bg-light'}`}>
-              <strong>{message.username === currentUser ? 'You' : message.username}:</strong> {message.content}
+              className={`list-group-item`}>
+              <strong>{message.username}:</strong> {message.content}
             </li>
           ))}
         </ul>

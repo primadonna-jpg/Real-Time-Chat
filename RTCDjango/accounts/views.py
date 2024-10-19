@@ -6,6 +6,8 @@ from .serializers import RegisterSerializer, UserSerializer, CustomTokenObtainPa
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import status
 
+from rest_framework import viewsets
+
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 
@@ -20,8 +22,22 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,) 
+
+    queryset = User.objects.all()
+    
+    def get_queryset(self):
+        current_user = self.request.user
+
+        # zwraca wszystkie wyniki orpocz exclude
+        return User.objects.exclude(id=current_user.id)
+
+
+
 class LogoutView(APIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         try:
