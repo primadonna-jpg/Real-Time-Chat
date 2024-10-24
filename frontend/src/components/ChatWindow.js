@@ -4,6 +4,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const ws = useRef(null);  // Ref do połączenia WebSocket
+  const chatWindowRef = useRef(null);  // Ref do elementu .chat-window
 
   useEffect(() => {
     fetch(`${baseURL}/chat/messages/?room_id=${chat.id}`, {
@@ -50,6 +51,14 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     };
   }, [chat.name]);
 
+  // Funkcja przewijająca okno czatu na dół
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [messages]);  // Wywołuje się za każdym razem, gdy zmieniają się wiadomości
+
+
   const handleSendMessage = () => {
     if (newMessage.trim() && ws.current) {
       // websocket send
@@ -60,13 +69,21 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     }
   };
 
+  // Funkcja obsługująca wciśnięcie Enter
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();  // opcjonalnie, aby zapobiec nowej linii
+      handleSendMessage();      // wysyłanie wiadomości
+    }
+  };
+
   return (
     <div className="card shadow mb-4 " style={{ maxwidth: '50vw', minWidth: '40vw'}} >
       <div className="card-header py-3">
         <h6 className="m-0 font-weight-bold text-primary">Chat with {chat.name}</h6>
       </div>
 
-      <div className="card-body chat-window">
+      <div className="card-body chat-window" ref={chatWindowRef}>
         <ul className="list-group text-list">
           {messages.map((message, index) => (
             <li 
@@ -85,6 +102,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
           placeholder="Type your message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyDown}   
         />
         <button className="btn btn-primary ml-2" onClick={handleSendMessage}>
           Send
