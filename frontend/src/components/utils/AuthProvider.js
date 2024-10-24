@@ -5,8 +5,9 @@ import { jwtDecode } from 'jwt-decode';
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  const baseURL = "http://127.0.0.1:8000";
-  //const baseURL = "http://192.168.100.55:8000";
+  //const baseURL = "http://127.0.0.1:8000";
+  const baseURL = "http://192.168.100.55:8000";  //do
+  //const baseURL = "http://10.72.4.108:8000";
   const [token, setToken] = useState(null);
   const [currentUserUsername, setUserUsername] =useState(null);
   const [loading, setLoading] = useState(true);
