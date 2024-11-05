@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ChatWindow from './ChatWindow';  // ChatWindow
 import { AuthContext } from './utils/AuthProvider';
-import { Modal, Button } from 'react-bootstrap';
+import UserSelectModal from './UserSelectModal';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -113,16 +113,7 @@ const ChatList = () => {
       });
   };
 
- // zaznaczanie użytkowników
- const handleUserCheck = (userId) => {
-  setSelectedUsers((prevSelectedUsers) => {
-    if (prevSelectedUsers.includes(userId)) {
-      return prevSelectedUsers.filter((id) => id !== userId); // Usuń użytkownika z listy
-    } else {
-      return [...prevSelectedUsers, userId]; // Dodaj użytkownika do listy
-    }
-  });
-};
+ 
 
   return (
     <div className="d-flex" style={{ height: '90vh' }}>
@@ -144,14 +135,19 @@ const ChatList = () => {
                 className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                 style={{ cursor: 'pointer' }}
               >
-                <span onClick={() => setSelectedChat(chat)}>{chat.name}</span>
-                <i
-                  className="fas fa-trash text-danger"
-                  onClick={() => handleDelete(chat.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  delete
-                </i>
+                <div onClick={() => setSelectedChat(chat)} className="d-flex align-items-center" style={{ flexGrow: 1 }}>
+                  <span>{chat.name}</span>
+                </div>
+               
+                <div className="d-flex align-items-center">
+                  <div style={{ borderLeft: '1px solid #ccc', height: '1.5em', marginLeft: '0.3em', marginRight: '0.3em' }}></div>
+                  <i
+                    className="fas fa-trash-alt text-danger"
+                    onClick={() => handleDelete(chat.id)}
+                    style={{ cursor: 'pointer' }}
+                  ></i>
+                </div>
+
               </li>
             ))}
           </ul>
@@ -161,7 +157,7 @@ const ChatList = () => {
       {/* Okno czatu */}
       <div style={{ flex: 1, marginLeft: '3vw', marginRight: '3vw' }}>
         {selectedChat ? (
-          <ChatWindow chat={selectedChat} token={token} currentUserUsername={currentUserUsername} baseURL={baseURL} />
+          <ChatWindow chat={selectedChat} token={token} currentUserUsername={currentUserUsername} baseURL={baseURL} availableUsers={availableUsers} />
         ) : (
           <div className="card shadow mb-4">
             <div className="card-body">
@@ -173,34 +169,15 @@ const ChatList = () => {
 
       {/* Modal do wyboru użytkowników */}
       {/* Modal do tworzenia nowego czatu */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Chat</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <ul className="list-group">
-            {availableUsers.map(user => (
-              <li key={user.id} className="list-group-item">
-                <input
-                  type="checkbox"
-                  checked={selectedUsers.includes(user.id)}
-                  onChange={() => handleUserCheck(user.id)}
-                />{' '}
-                {user.username}
-              </li>
-            ))}
-          </ul>
-          {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleCreateChat}>
-            Create Chat
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <UserSelectModal
+        availableUsers={availableUsers}
+        selectedUsers={selectedUsers}
+        setSelectedUsers={setSelectedUsers}
+        showModal={showModal}
+        handleClose={handleCloseModal}
+        handleSubmit={handleCreateChat}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 };

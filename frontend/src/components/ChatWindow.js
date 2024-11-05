@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import UserSelectModal from './UserSelectModal';
 
-const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
+
+const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const ws = useRef(null);  // Ref do połączenia WebSocket
   const chatWindowRef = useRef(null);  // Ref do elementu .chat-window
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showModal, setShowModal] = useState(false); //modal
+  const [newAvailableUsers, setNewAvailableUsers] = useState([]);
 
   useEffect(() => {
     fetch(`${baseURL}/chat/messages/?room_id=${chat.id}`, {
@@ -26,7 +32,12 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     .catch(error =>{
       console.log(error);
     });
-    
+
+    // filtr zapobiegający dodawaniu do chatu osób już dodanych
+    if(availableUsers){
+      setNewAvailableUsers(availableUsers.filter(user => !chat.members.includes(user.id)));
+    }
+
     ////////////////////////////////////
     ///////// obsługa WEBSOCKET ////////
     const roomName = encodeURIComponent(chat.name);
@@ -44,12 +55,13 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     ws.current.onclose = () => {
       console.log('WebSocket disconnected');
     };
-
-    setMessages([]); //kiedy chat.name się zmienia tablica messeges zostaje wyczyszczona
+    console.log(chat);
+    setMessages([]); 
     return () => {
       ws.current.close();
     };
   }, [chat.name]);
+
 
   // Funkcja przewijająca okno czatu na dół
   useEffect(() => {
@@ -58,7 +70,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     }
   }, [messages]);  // Wywołuje się za każdym razem, gdy zmieniają się wiadomości
 
-
+  
   const handleSendMessage = () => {
     if (newMessage.trim() && ws.current) {
       // websocket send
@@ -77,10 +89,51 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
     }
   };
 
+  // Obsługa otwierania i zamykania modala
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
+
+
+  const handleAddUsers = () => {
+    if (selectedUsers.length === 0) {
+      setErrorMessage('Please select at least one user.');
+      return;
+    }
+
+    fetch(`${baseURL}/chat/rooms/${chat.id}/add_members/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ users: selectedUsers }),
+    })
+    .then(response =>{
+      if(!response.ok){
+        throw new Error('Failed to add users');
+      }
+      setSelectedUsers([]);
+      setErrorMessage('');
+      handleCloseModal();
+    })
+    .catch(error =>{
+      console.log(error);
+    });
+
+  }
+
+
+
+
   return (
     <div className="card shadow mb-4 " style={{ maxwidth: '50vw', minWidth: '40vw'}} >
       <div className="card-header py-3">
         <h6 className="m-0 font-weight-bold text-primary">Chat with {chat.name}</h6>
+        <i
+          className="fas fa-plus"
+          style={{ cursor: 'pointer' }}
+          onClick={()=>handleShowModal()}
+        ></i>
       </div>
 
       <div className="card-body chat-window" ref={chatWindowRef}>
@@ -108,6 +161,18 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL }) => {
           Send
         </button>
       </div>
+
+      {/* Modal do wyboru użytkowników */}
+      <UserSelectModal
+        availableUsers={newAvailableUsers}
+        selectedUsers={selectedUsers}
+        setSelectedUsers={setSelectedUsers}
+        showModal={showModal}
+        handleClose={handleCloseModal}
+        handleSubmit={handleAddUsers}
+        errorMessage={errorMessage}
+      />
+
     </div>
   );
 };
