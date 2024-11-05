@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from .serializers import ChatRoomSerializer, MessageSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-
+from rest_framework.decorators import action
 
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
@@ -23,13 +23,13 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
 
         # Pobranie nazwy użytkownika z requestu
         #target_username = request.data.get('username')
-        target_usersId = request.data.get('users')
-        if not target_usersId:
+        target_usersIds = request.data.get('users')
+        if not target_usersIds:
             return Response({'detail': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Sprawdzanie, czy użytkownik istnieje
+        # czy użytkownik istnieje
         try:
-            target_users = User.objects.filter(id__in=target_usersId)
+            target_users = User.objects.filter(id__in=target_usersIds)
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -49,8 +49,58 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(chat_room)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    #http://127.0.0.1:8000/chat/rooms/{room.id}/add_members/
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def add_members(self, request, pk=None):
+        chat_room = self.get_object()
+        new_usersIds = request.data.get('users', [])
 
+        if not new_usersIds:
+            return Response({'detail': 'User IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            new_users = User.objects.filter(id__in = new_usersIds)
+        except User.DoesNotExist:
+            return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        usernames = [user.username for user in new_users]
+        usernames_string = '-'.join(sorted(usernames))
+        new_chat_name= f"{chat_room.name}-{usernames_string}"
+        
+        chat_room.name = new_chat_name
+        #users_to_add = User.objects.filter(id__in=new_usersIds)
+        for user in new_users:
+            chat_room.members.add(user)
+        
+        chat_room.save()
+        return Response({'detail': 'Users added successfully.'}, status=status.HTTP_200_OK)
+    
 
+    #http://127.0.0.1:8000/chat/rooms/{room.id}/remove_members/
+    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
+    def remove_members(self, request, pk=None):
+        chat_room = self.get_object()
+        usersIds_to_remove = request.data.get('users', [])
+
+        if not usersIds_to_remove:
+            return Response({'detail': 'User IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            users_to_delete = User.objects.filter(id__in = usersIds_to_remove)
+        except User.DoesNotExist:
+            return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        usernames_to_delete = [user.username for user in users_to_delete]
+        
+        current_usernames = [member.username for member in chat_room.members.all()]
+        updated_usernames = [username for username in current_usernames if username not in usernames_to_delete]
+        usernames_string = '-'.join(sorted(updated_usernames))
+        chat_room.name = usernames_string
+        
+        for user in users_to_delete:
+            chat_room.members.remove(user)
+        
+        chat_room.save()
+        return Response({'detail': 'Users removed successfully.'}, status=status.HTTP_200_OK)
+        
 
 
 
