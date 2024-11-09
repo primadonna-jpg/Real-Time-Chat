@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import ChatWindow from './ChatWindow';  // ChatWindow
 import { AuthContext } from './utils/AuthProvider';
 import UserSelectModal from './UserSelectModal';
+import  {NotificationContext}  from './utils/NotificationProvider';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -11,7 +12,20 @@ const ChatList = () => {
   const [showModal, setShowModal] = useState(false);         // Stan modala
   const [errorMessage, setErrorMessage] = useState('');
   const { token, currentUserUsername, baseURL } = useContext(AuthContext);
+  const { notifications, newChatNotifications } = useContext(NotificationContext);
 
+
+  // useEffect(() => {
+  //   //Dodanie nowego czatu do listy, gdy pojawia się w powiadomieniach
+  //   newChatNotifications.forEach((newChat) => {
+  //     if (!chats.find(chat => chat.id === newChat.id)) {
+  //       setChats(prevChats => [...prevChats, newChat]);
+        
+  //     }
+  //   });
+    
+  // }, [newChatNotifications, chats])
+  
   // Pobranie listy czatów
   useEffect(() => {
     fetch(`${baseURL}/chat/rooms/`, {
@@ -29,7 +43,8 @@ const ChatList = () => {
       })
       .then(data => setChats(data))
       .catch(error => console.log(error));
-  }, [baseURL, token]);
+      
+  }, [baseURL, token, newChatNotifications]);
 
   // Pobranie listy dostępnych użytkowników
   useEffect(() => {
@@ -94,6 +109,7 @@ const ChatList = () => {
   };
 
   const handleDelete = (chatId) => {
+    
     // Wywołanie API do usunięcia czatu
     fetch(`${baseURL}/chat/rooms/${chatId}/`, {
       method: 'DELETE',
@@ -112,6 +128,27 @@ const ChatList = () => {
         console.log(error);
       });
   };
+
+  //opuszczanie czatu
+  const handleLeaveChatRoom = (chatId)=> {
+    fetch(`${baseURL}/chat/rooms/${chatId}/remove_current_user/`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (response.ok) {
+          setChats(chats.filter(chat => chat.id !== chatId));
+        } else {
+          throw new Error('Failed to delete chat');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+      
+  }
 
  
 
@@ -143,7 +180,7 @@ const ChatList = () => {
                   <div style={{ borderLeft: '1px solid #ccc', height: '1.5em', marginLeft: '0.3em', marginRight: '0.3em' }}></div>
                   <i
                     className="fas fa-trash-alt text-danger"
-                    onClick={() => handleDelete(chat.id)}
+                    onClick={() => handleLeaveChatRoom(chat.id)}
                     style={{ cursor: 'pointer' }}
                   ></i>
                 </div>

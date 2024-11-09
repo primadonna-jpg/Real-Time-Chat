@@ -53,4 +53,45 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
 
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    
+    async def connect(self):
+        # Kanał powiadomień dla użytkownika
+        self.user = self.scope['user']
+        self.room_group_name = f'notifications_{self.user.username}'
+
+        # Dodanie do grupy WebSocket 
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Usuń z grupy po rozłączeniu
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    # Odbieranie wiadomości z grupy WebSocket
+    async def receive(self, text_data):
+        # Tu obsługa wiadomości wyłanych przez klienta
+        pass
+
+    # Funkcja do wysyłania powiadomienia o nowym czacie
+    async def new_chat_notification(self, event):
+        # Zdarzenie zawiera dane o nowym czacie
+        chat_name = event['chat_name']
+        chat_id = event['chat_id']
+
+        # Wysyłanie do fronta
+        await self.send(text_data=json.dumps({
+            'notification_type': "new_chat",
+            'chat':{
+                'name': chat_name,
+                'id': chat_id
+            }
+        }))
     

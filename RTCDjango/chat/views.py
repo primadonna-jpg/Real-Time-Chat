@@ -7,6 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
@@ -45,9 +49,22 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         chat_room.members.add(*target_users)
         chat_room.save()
 
-        #Serializowanie i odesłanie odpowiedzi
         serializer = self.get_serializer(chat_room)
+
+        # Wysyłanie powiadomienia o nowym czacie do consumer
+        channel_layer = get_channel_layer()
+
+        for user in chat_room.members.all():
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
+                {
+                    'type': 'new_chat_notification',
+                    'chat_name': chat_room.name,
+                    'chat_id': chat_room.id
+                }
+            )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
     #http://127.0.0.1:8000/chat/rooms/{room.id}/add_members/
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
@@ -72,6 +89,18 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             chat_room.members.add(user)
         
         chat_room.save()
+
+        # notyfikacja do dodanego uzytkownika 
+        channel_layer = get_channel_layer()
+        for user in chat_room.members.all():
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
+                {
+                    'type': 'new_chat_notification',
+                    'chat_name': chat_room.name,
+                    'chat_id': chat_room.id
+                }
+            )
         return Response({'detail': 'Users added successfully.'}, status=status.HTTP_200_OK)
     
 
@@ -99,7 +128,58 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             chat_room.members.remove(user)
         
         chat_room.save()
+
+
+        # notyfikacja do dodanego uzytkownika 
+        channel_layer = get_channel_layer()
+        for user in chat_room.members.all():
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
+                {
+                    'type': 'new_chat_notification',
+                    'chat_name': chat_room.name,
+                    'chat_id': chat_room.id
+                }
+            )
+
         return Response({'detail': 'Users removed successfully.'}, status=status.HTTP_200_OK)
+    
+
+
+
+
+
+    #http://127.0.0.1:8000/chat/rooms/{room.id}/remove_current_user/
+    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
+    def remove_current_user(self, request, pk=None):
+        chat_room = self.get_object()
+        user_to_remove = self.request.user
+
+        # czy użytkownik jest członkiem pokoju
+        if not chat_room.members.filter(id=user_to_remove.id).exists():
+            return Response({'detail': 'User is not a member of this chat room.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        chat_room.members.remove(user_to_remove)
+
+        # update nazwy pokoju
+        remaining_usernames = [member.username for member in chat_room.members.all()]
+        chat_room.name = '-'.join(sorted(remaining_usernames))
+        chat_room.save()
+
+        # powiadomienia do pozostalych czlonkow
+        channel_layer = get_channel_layer()
+        for member in chat_room.members.all():
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{member.username}',  
+                {
+                    'type': 'new_chat_notification',
+                    'chat_name': chat_room.name,
+                    'chat_id': chat_room.id
+                }
+            )
+
+        return Response({'detail': 'User removed successfully.'}, status=status.HTTP_200_OK)
         
 
 

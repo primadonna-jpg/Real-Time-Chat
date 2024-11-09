@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import UserSelectModal from './UserSelectModal';
-
+import  {NotificationContext}  from './utils/NotificationProvider';
 
 const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers }) => {
   const [messages, setMessages] = useState([]);
@@ -11,8 +11,22 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showModal, setShowModal] = useState(false); //modal
   const [newAvailableUsers, setNewAvailableUsers] = useState([]);
+  const [chatNameToDisplay, setChatNameToDisplay] = useState('');
+  const { notifications, newChatNotifications } = useContext(NotificationContext);
 
+  //zmiana wyswietlanej nazwy
+  useEffect(()=>{
+    const newChatsData = newChatNotifications.filter((newChat)=>{
+      if(newChat.id === chat.id && newChat.name){
+        setChatNameToDisplay(newChat.name);
+      }
+    });
+
+  }, [newChatNotifications]);
+
+  //inicjacja materiałów potrzebnych do okna czatu
   useEffect(() => {
+    //pobieranie wiadomośći czatu
     fetch(`${baseURL}/chat/messages/?room_id=${chat.id}`, {
       method: 'GET',
       headers: {
@@ -33,6 +47,8 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
       console.log(error);
     });
 
+    //wyśietlana nazwa czatu
+    setChatNameToDisplay(chat.name);
     // filtr zapobiegający dodawaniu do chatu osób już dodanych
     if(availableUsers){
       setNewAvailableUsers(availableUsers.filter(user => !chat.members.includes(user.id)));
@@ -128,7 +144,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
   return (
     <div className="card shadow mb-4 " style={{ maxwidth: '50vw', minWidth: '40vw'}} >
       <div className="card-header py-3">
-        <h6 className="m-0 font-weight-bold text-primary">Chat with {chat.name}</h6>
+        <h6 className="m-0 font-weight-bold text-primary">Chat with {chatNameToDisplay}</h6>
         <i
           className="fas fa-plus"
           style={{ cursor: 'pointer' }}
