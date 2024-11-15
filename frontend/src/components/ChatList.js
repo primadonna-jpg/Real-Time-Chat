@@ -12,7 +12,7 @@ const ChatList = () => {
   const [showModal, setShowModal] = useState(false);         // Stan modala
   const [errorMessage, setErrorMessage] = useState('');
   const { token, currentUserUsername, baseURL } = useContext(AuthContext);
-  const { notifications, newChatNotifications } = useContext(NotificationContext);
+  const { newChatNotifications } = useContext(NotificationContext);
 
 
   // useEffect(() => {

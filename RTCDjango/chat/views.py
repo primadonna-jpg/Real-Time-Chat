@@ -59,8 +59,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
                 {
                     'type': 'new_chat_notification',
+                    'chat_id': chat_room.id,
                     'chat_name': chat_room.name,
-                    'chat_id': chat_room.id
                 }
             )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -79,6 +79,18 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
         
+        
+        # ignorujemy użytkowników, którzy już należą do czatu
+        new_users = [user for user in new_users if not chat_room.members.filter(id=user.id).exists()]
+
+        if not new_users:
+            return Response(
+                {'detail': 'All specified users are already members of this chat room.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+
         usernames = [user.username for user in new_users]
         usernames_string = '-'.join(sorted(usernames))
         new_chat_name= f"{chat_room.name}-{usernames_string}"
@@ -97,8 +109,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
                 {
                     'type': 'new_chat_notification',
+                    'chat_id': chat_room.id,
                     'chat_name': chat_room.name,
-                    'chat_id': chat_room.id
                 }
             )
         return Response({'detail': 'Users added successfully.'}, status=status.HTTP_200_OK)
@@ -109,7 +121,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     def remove_members(self, request, pk=None):
         chat_room = self.get_object()
         usersIds_to_remove = request.data.get('users', [])
-
+            
         if not usersIds_to_remove:
             return Response({'detail': 'User IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -117,8 +129,22 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
         
+
+        # Sprawdź, czy wszyscy użytkownicy są w czacie
+        users_not_in_chat = [
+            user.username for user in users_to_delete
+            if not chat_room.members.filter(id=user.id).exists()
+        ]
+
+        if users_not_in_chat:
+            return Response(
+                {'detail': 'Some users are not members of this chat room.',
+                'users_not_in_chat': users_not_in_chat},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        #usuwanie
         usernames_to_delete = [user.username for user in users_to_delete]
-        
         current_usernames = [member.username for member in chat_room.members.all()]
         updated_usernames = [username for username in current_usernames if username not in usernames_to_delete]
         usernames_string = '-'.join(sorted(updated_usernames))
@@ -137,8 +163,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
                 {
                     'type': 'new_chat_notification',
+                    'chat_id': chat_room.id,
                     'chat_name': chat_room.name,
-                    'chat_id': chat_room.id
                 }
             )
 
@@ -174,8 +200,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 f'notifications_{member.username}',  
                 {
                     'type': 'new_chat_notification',
+                    'chat_id': chat_room.id,
                     'chat_name': chat_room.name,
-                    'chat_id': chat_room.id
                 }
             )
 

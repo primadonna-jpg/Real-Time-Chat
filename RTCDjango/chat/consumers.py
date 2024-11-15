@@ -7,8 +7,8 @@ from .models import ChatRoom, Message
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'chat_{self.room_name}'
+        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = f'chat_{self.room_id}'
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -29,8 +29,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = text_data_json['message']
         user = self.scope['user']
         
-        #chat_room = ChatRoom.objects.get(name=self.room_name)
-        chat_room = await database_sync_to_async(ChatRoom.objects.get)(name=self.room_name)
+        #chat_room = ChatRoom.objects.get(name=self.room_id)
+        chat_room = await database_sync_to_async(ChatRoom.objects.get)(id=self.room_id)
 
         new_message = Message(user=user, room=chat_room, content=message) 
         await database_sync_to_async(new_message.save)() #zapis wiadomości do bazy
