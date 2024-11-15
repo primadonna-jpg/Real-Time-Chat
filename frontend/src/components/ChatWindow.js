@@ -12,7 +12,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
   const [showModal, setShowModal] = useState(false); //modal
   const [newAvailableUsers, setNewAvailableUsers] = useState([]);
   const [chatNameToDisplay, setChatNameToDisplay] = useState('');
-  const { notifications, newChatNotifications } = useContext(NotificationContext);
+  const { newChatNotifications } = useContext(NotificationContext);
 
   //zmiana wyswietlanej nazwy
   useEffect(()=>{
@@ -50,15 +50,18 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
     //wyśietlana nazwa czatu
     setChatNameToDisplay(chat.name);
     // filtr zapobiegający dodawaniu do chatu osób już dodanych
+    // if(availableUsers){
+    //   setNewAvailableUsers(availableUsers.filter(user => !chat.members.includes(user.id)));
+    // }
     if(availableUsers){
-      setNewAvailableUsers(availableUsers.filter(user => !chat.members.includes(user.id)));
+      setNewAvailableUsers(availableUsers);
     }
 
     ////////////////////////////////////
     ///////// obsługa WEBSOCKET ////////
-    const roomName = encodeURIComponent(chat.name);
+    const roomId = encodeURIComponent(chat.id);
     const trimmedUrl = baseURL.replace(/https?:\/\//, '');
-    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomName}/?token=${token}`);
+    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`);
 
     // Obsługa odbierania wiadomości
     ws.current.onmessage = (event) => {
@@ -66,10 +69,10 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
       setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username }]);
     };
     ws.current.onopen = () => {
-      console.log('WebSocket connected');
+      console.log('Chat WebSocket connected');
     };
     ws.current.onclose = () => {
-      console.log('WebSocket disconnected');
+      console.log('Chat WebSocket disconnected');
     };
     console.log(chat);
     setMessages([]); 
