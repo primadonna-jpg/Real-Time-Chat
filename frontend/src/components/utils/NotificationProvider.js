@@ -11,6 +11,8 @@ const NotificationProvider = ({ children }) => {
     const ws = useRef(null);
 
     useEffect(() => {
+        if (!token) return;
+
         const trimmedUrl = baseURL.replace(/https?:\/\//, '');
         ws.current = new WebSocket(`ws://${trimmedUrl}/ws/notifications/?token=${token}`);
 
@@ -32,7 +34,7 @@ const NotificationProvider = ({ children }) => {
         }
         };
 
-    }, []);
+    }, [token, baseURL]);
 
     return (
         <NotificationContext.Provider value={{ notifications, newChatNotifications }}>
