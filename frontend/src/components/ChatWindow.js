@@ -79,7 +79,7 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
     return () => {
       ws.current.close();
     };
-  }, [chat.name]);
+  }, [chat.id]);
 
 
   // Funkcja przewijająca okno czatu na dół
