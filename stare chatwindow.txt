@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import UserSelectModal from './UserSelectModal';
 import  {NotificationContext}  from './utils/NotificationProvider';
-import { fetchMessages, addUsers } from './utils/api';
 
-const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
+const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -17,7 +16,7 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
 
   //zmiana wyswietlanej nazwy
   useEffect(()=>{
-    newChatNotifications.forEach((newChat)=>{
+    const newChatsData = newChatNotifications.filter((newChat)=>{
       if(newChat.id === chat.id && newChat.name){
         setChatNameToDisplay(newChat.name);
       }
@@ -46,21 +45,43 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   };
 
 
+  //inicjacja materiałów potrzebnych do okna czatu
   useEffect(() => {
-    fetchMessages(baseURL,token,chat.id)
-    .then((mess)=>setMessages(mess))
-    .catch(error=>{
+    //pobieranie wiadomośći czatu
+    fetch(`${baseURL}/chat/messages/?room_id=${chat.id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+    .then(response =>{
+      if(response.ok){
+        return response.json();
+      }else{
+        throw new Error('Failed to load previous messages');
+      }
+    })
+    .then(data =>{
+      setMessages(data);
+    })
+    .catch(error =>{
       console.log(error);
     });
 
-    
+    //wyśietlana nazwa czatu
     setChatNameToDisplay(chat.name);
+    // filtr zapobiegający dodawaniu do chatu osób już dodanych
+    // if(availableUsers){
+    //   setNewAvailableUsers(availableUsers.filter(user => !chat.members.includes(user.id)));
+    // }
     if(availableUsers){
       setNewAvailableUsers(availableUsers);
     }
 
+    
     ///////// łączenie WebSocket i ponowne łączenie////////
     connectWebSocket();
+
     const handleVisibilityChange = ()=>{
       if (document.visibilityState === "visible" && ws.current.readyState !== WebSocket.OPEN){
           console.log("Reconnecting to Chat WebSocket");
@@ -68,6 +89,7 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
+
     console.log(chat);
     setMessages([]); 
     return () => {
@@ -76,15 +98,17 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
     };
   }, [chat.id]);
 
- 
-
+  //////////////
+  //////////////
+  
+  // Funkcja przewijająca okno czatu na dół
   useEffect(() => {
-    // Funkcja przewijająca okno czatu na dół
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
   }, [messages]);  // Wywołuje się za każdym razem, gdy zmieniają się wiadomości
 
+  
   const handleSendMessage = () => {
     if (newMessage.trim() && ws.current) {
       // websocket send
@@ -95,14 +119,15 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
     }
   };
 
+  // Funkcja obsługująca wciśnięcie Enter
   const handleKeyDown = (event) => {
-    // Funkcja obsługująca wciśnięcie Enter
     if (event.key === 'Enter') {
       event.preventDefault();  // opcjonalnie, aby zapobiec nowej linii
       handleSendMessage();      // wysyłanie wiadomości
     }
   };
 
+  // Obsługa otwierania i zamykania modala
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
 
@@ -112,13 +137,24 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
       setErrorMessage('Please select at least one user.');
       return;
     }
-    addUsers(baseURL,token,chat.id,selectedUsers)
-    .then(() =>{
+
+    fetch(`${baseURL}/chat/rooms/${chat.id}/add_members/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ users: selectedUsers }),
+    })
+    .then(response =>{
+      if(!response.ok){
+        throw new Error('Failed to add users');
+      }
       setSelectedUsers([]);
       setErrorMessage('');
       handleCloseModal();
     })
-    .catch(error=>{
+    .catch(error =>{
       console.log(error);
     });
 

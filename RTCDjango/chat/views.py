@@ -21,8 +21,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return ChatRoom.objects.filter(members=user)
 
-
-
     def create(self, request, *args, **kwargs):
 
         # Pobranie nazwy użytkownika z requestu
