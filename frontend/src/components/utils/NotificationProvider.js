@@ -10,9 +10,7 @@ const NotificationProvider = ({ children }) => {
     const [newChatNotifications, setNewChatNotification] = useState([]);
     const ws = useRef(null);
 
-    useEffect(() => {
-        if (!token) return;
-
+    const connectWebSocket = ()=> {
         const trimmedUrl = baseURL.replace(/https?:\/\//, '');
         ws.current = new WebSocket(`ws://${trimmedUrl}/ws/notifications/?token=${token}`);
 
@@ -27,14 +25,36 @@ const NotificationProvider = ({ children }) => {
 
         ws.current.onopen = () => console.log('Notification WebSocket connected');
         ws.current.onclose = () => console.log('Notification WebSocket disconnected');
+    };
+
+    useEffect(() => {
+        if (!token) return;  //zapobiega incjowaniu przed posiadaniem tokena
+
+        connectWebSocket();
+        
+        const handleVisibilityChange = ()=>{
+            if (document.visibilityState === "visible" && ws.current.readyState !== WebSocket.OPEN){
+                console.log("Reconnecting to Notification WebSocket");
+                connectWebSocket();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
         if (ws.current) {
             ws.current.close();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         }
         };
 
     }, [token, baseURL]);
+
+
+
+
+
+
 
     return (
         <NotificationContext.Provider value={{ notifications, newChatNotifications }}>
