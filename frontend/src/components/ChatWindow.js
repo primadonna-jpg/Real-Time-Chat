@@ -23,6 +23,27 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
     });
 
   }, [newChatNotifications]);
+  
+
+
+  const connectWebSocket = ()=>{
+    const roomId = encodeURIComponent(chat.id);
+    const trimmedUrl = baseURL.replace(/https?:\/\//, '');
+    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`);
+
+    // Obsługa odbierania wiadomości
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username }]);
+    };
+    ws.current.onopen = () => {
+      console.log('Chat WebSocket connected');
+    };
+    ws.current.onclose = () => {
+      console.log('Chat WebSocket disconnected');
+    };
+  };
+
 
   //inicjacja materiałów potrzebnych do okna czatu
   useEffect(() => {
@@ -57,31 +78,29 @@ const ChatWindow = ({ chat, token, currentUserUsername, baseURL, availableUsers 
       setNewAvailableUsers(availableUsers);
     }
 
-    ////////////////////////////////////
-    ///////// obsługa WEBSOCKET ////////
-    const roomId = encodeURIComponent(chat.id);
-    const trimmedUrl = baseURL.replace(/https?:\/\//, '');
-    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`);
+    
+    ///////// łączenie WebSocket i ponowne łączenie////////
+    connectWebSocket();
 
-    // Obsługa odbierania wiadomości
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username }]);
+    const handleVisibilityChange = ()=>{
+      if (document.visibilityState === "visible" && ws.current.readyState !== WebSocket.OPEN){
+          console.log("Reconnecting to Chat WebSocket");
+          connectWebSocket();
+      }
     };
-    ws.current.onopen = () => {
-      console.log('Chat WebSocket connected');
-    };
-    ws.current.onclose = () => {
-      console.log('Chat WebSocket disconnected');
-    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     console.log(chat);
     setMessages([]); 
     return () => {
       ws.current.close();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [chat.id]);
 
-
+  //////////////
+  //////////////
+  
   // Funkcja przewijająca okno czatu na dół
   useEffect(() => {
     if (chatWindowRef.current) {
