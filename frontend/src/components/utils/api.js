@@ -24,6 +24,15 @@ fetch(`${baseURL}/chat/messages/?room_id=${chatId}`, {
 
 
 
+export const generateAgoraToken = (baseURL,token,chatId) =>
+fetch(`${baseURL}/chat/rooms/${chatId}/generate_agora_token/`, {
+    method: 'GET',
+    headers: BASE_HEADERS(token),
+}).then((res) => res.json());
+
+
+
+
 export const createChat = (baseURL, token, users) =>
 fetch(`${baseURL}/chat/rooms/`, {
     method: 'POST',

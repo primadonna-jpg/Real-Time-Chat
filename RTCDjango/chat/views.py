@@ -10,6 +10,9 @@ from rest_framework.decorators import action
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from agora_token_builder import RtcTokenBuilder
+import time
+from .agoraConfig import CONFIG
 
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
@@ -56,7 +59,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             async_to_sync(channel_layer.group_send)(
                 f'notifications_{user.username}',  # Kanał WebSocket tego użytkownika
                 {
-                    'type': 'new_chat_notification',
+                    'type': 'new_chat_notification', #nazwa metody która zostanie wywołana w consumer
                     'chat_id': chat_room.id,
                     'chat_name': chat_room.name,
                 }
@@ -77,7 +80,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
         
-        
         # ignorujemy użytkowników, którzy już należą do czatu
         new_users = [user for user in new_users if not chat_room.members.filter(id=user.id).exists()]
 
@@ -86,8 +88,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 {'detail': 'All specified users are already members of this chat room.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
 
         usernames = [user.username for user in new_users]
         usernames_string = '-'.join(sorted(usernames))
@@ -114,6 +114,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Users added successfully.'}, status=status.HTTP_200_OK)
     
 
+
+
     #http://127.0.0.1:8000/chat/rooms/{room.id}/remove_members/
     @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
     def remove_members(self, request, pk=None):
@@ -127,7 +129,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
         
-
         # Sprawdź, czy wszyscy użytkownicy są w czacie
         users_not_in_chat = [
             user.username for user in users_to_delete
@@ -152,7 +153,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             chat_room.members.remove(user)
         
         chat_room.save()
-
 
         # notyfikacja do dodanego uzytkownika 
         channel_layer = get_channel_layer()
@@ -183,7 +183,6 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         if not chat_room.members.filter(id=user_to_remove.id).exists():
             return Response({'detail': 'User is not a member of this chat room.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        
         chat_room.members.remove(user_to_remove)
 
         # update nazwy pokoju
@@ -204,7 +203,45 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             )
 
         return Response({'detail': 'User removed successfully.'}, status=status.HTTP_200_OK)
-        
+    
+    #http://127.0.0.1:8000/chat/rooms/{room.id}/generate_agora_token/
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def generate_agora_token(self, request, pk=None):
+        app_id = CONFIG['app_id']
+        app_certificate = CONFIG['app_certificate']
+        expiration_time_in_seconds = 3600  # Token ważny przez 1 godzinę
+        current_timestamp = int(time.time())
+
+        privilege_expired = current_timestamp + expiration_time_in_seconds
+
+        chat_room = self.get_object()
+        user_id = self.request.user.id  
+        channel_name = chat_room.name  # Kanał będzie nazwą pokoju czatu
+        role = 1 # 1-host 2-audiance
+
+        token = RtcTokenBuilder.buildTokenWithUid(
+        app_id,
+        app_certificate,
+        channel_name,
+        user_id,
+        role,
+        privilege_expired
+        )
+
+        # powiadomienia do pozostalych czlonkow
+        channel_layer = get_channel_layer()
+        for member in chat_room.members.all():
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{member.username}',  
+                {
+                    'type': 'active_video_call_notification', #nazwa metody która zostanie wywołana w consumer
+                    'chat_id': chat_room.id,
+                    'chat_name': chat_room.name,
+                    'video_call_token': token
+                }
+            )
+        return Response({'agora_token': token}, status=status.HTTP_200_OK)
+
 
 
 
@@ -226,3 +263,6 @@ class MessageViewSet(viewsets.ModelViewSet):
             room__members=user,
             room__id = room_id
         )
+
+
+

@@ -16,7 +16,8 @@ staticfiles/
 media/
 node_modules/
 
-
+#wlasne
+agoraConfig.py
 
 # macOS
 .DS_Store

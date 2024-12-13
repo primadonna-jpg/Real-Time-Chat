@@ -8,6 +8,7 @@ const NotificationProvider = ({ children }) => {
     const { token, baseURL } = useContext(AuthContext);
     const [notifications, setNotifications] = useState([]);
     const [newChatNotifications, setNewChatNotification] = useState([]);
+    const [activeCallNotification, setActiveCallNotification] = useState([]);
     const ws = useRef(null);
 
     const connectWebSocket = ()=> {
@@ -19,6 +20,9 @@ const NotificationProvider = ({ children }) => {
             const data = JSON.parse(event.data);
             if (data.notification_type === "new_chat") {
                 setNewChatNotification((prev) => [...prev, data.chat]);
+            }
+            if(data.notification_type === "active_video_call"){
+                console.log('There is active call waiting');
             }
             
         };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import UserSelectModal from './UserSelectModal';
 import  {NotificationContext}  from './utils/NotificationProvider';
-import { fetchMessages, addUsers } from './utils/api';
+import { fetchMessages, addUsers, generateAgoraToken } from './utils/api';
 
 const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   const [messages, setMessages] = useState([]);
@@ -13,8 +13,9 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   const [showModal, setShowModal] = useState(false); //modal
   const [newAvailableUsers, setNewAvailableUsers] = useState([]);
   const [chatNameToDisplay, setChatNameToDisplay] = useState('');
+  const [agoraToken, setAgoraToken] = useState('');
   const { newChatNotifications } = useContext(NotificationContext);
-
+  
   //zmiana wyswietlanej nazwy
   useEffect(()=>{
     newChatNotifications.forEach((newChat)=>{
@@ -122,8 +123,16 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
       console.log(error);
     });
 
-  }
+  };
 
+
+  const handleGenerateAgoraToken = () => {
+    generateAgoraToken(baseURL,token,chat.id)
+    .then((data)=>{
+      setAgoraToken(data.agora_token);
+      console.log('agora token', data);
+    })
+  };
 
 
 
@@ -136,6 +145,10 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
           style={{ cursor: 'pointer' }}
           onClick={()=>handleShowModal()}
         ></i>
+        <i
+          style={{ cursor: 'pointer' }}
+          onClick={()=>handleGenerateAgoraToken()}
+        >Video call</i>
       </div>
 
       <div className="card-body chat-window" ref={chatWindowRef}>
