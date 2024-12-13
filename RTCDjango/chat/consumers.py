@@ -94,4 +94,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 'id': chat_id
             }
         }))
+
     
+    async def active_video_call_notification(self, event):
+        chat_name = event['chat_name']
+        chat_id = event ['chat_id']
+        video_call_token = event ['video_call_token']
+        await self.send(text_data=json.dumps({
+            'notification_type': "active_video_call", #informacja dla front 
+            'chat':{
+                'name':chat_name,
+                'id': chat_id
+            },
+            'video_call_token': video_call_token,
+        }))

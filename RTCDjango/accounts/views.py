@@ -35,7 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return User.objects.exclude(id=current_user.id)
 
 
-
+#nie używane
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 

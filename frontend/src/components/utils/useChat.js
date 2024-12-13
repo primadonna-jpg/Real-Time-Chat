@@ -9,7 +9,6 @@ export const useChat = (baseURL, token, currentUserUsername) => {
     
     useEffect(()=>{
         fetchChats(baseURL, token).then(setChats).catch(console.error);
-        console.log("feczujemy bo mamy powiadomienie");
     },[baseURL,token,newChatNotifications ]);
 
     useEffect(() => {
