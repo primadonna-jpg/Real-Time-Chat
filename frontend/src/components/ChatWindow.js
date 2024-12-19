@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import UserSelectModal from './UserSelectModal';
+import VideoCallModal from './VideoCallModal';
 import  {NotificationContext}  from './utils/NotificationProvider';
-import { fetchMessages, addUsers, generateAgoraToken } from './utils/api';
+import { fetchMessages, addUsers, generateVideoCallToken } from './utils/api';
+import { useNavigate } from 'react-router-dom'; 
 
-const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
+const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCallActive, setIsCallActive }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -13,7 +15,6 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   const [showModal, setShowModal] = useState(false); //modal
   const [newAvailableUsers, setNewAvailableUsers] = useState([]);
   const [chatNameToDisplay, setChatNameToDisplay] = useState('');
-  const [agoraToken, setAgoraToken] = useState('');
   const { newChatNotifications } = useContext(NotificationContext);
   
   //zmiana wyswietlanej nazwy
@@ -31,7 +32,8 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   const connectWebSocket = ()=>{
     const roomId = encodeURIComponent(chat.id);
     const trimmedUrl = baseURL.replace(/https?:\/\//, '');
-    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`);
+    ws.current = new WebSocket(`ws://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`); //bez https
+    //ws.current = new WebSocket(`wss://${trimmedUrl}/ws/chat/${roomId}/?token=${token}`); //z https
 
     // Obsługa odbierania wiadomości
     ws.current.onmessage = (event) => {
@@ -71,6 +73,8 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     console.log(chat);
     setMessages([]); 
+
+    
     return () => {
       ws.current.close();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -126,14 +130,35 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
   };
 
 
-  const handleGenerateAgoraToken = () => {
-    generateAgoraToken(baseURL,token,chat.id)
-    .then((data)=>{
-      setAgoraToken(data.agora_token);
-      console.log('agora token', data);
-    })
+  const handleJoinVideoCall = () => {
+    //if (!currentUserId) return;
+    // navigate(`/videoCall/${chat.id}`,{ state: { chat } });
+    // setIsCallActive(true);
+    if (isCallActive) return;
+
+    const childWindow = window.open(
+      `/videoCall/${chat.id}`,
+      "_blank",
+      "width=800,height=600,location=no,toolbar=no,menubar=no"
+    );
+    
+    if(childWindow){
+      childWindow.opener = {
+        handleEndVideoCall,
+      };
+      setIsCallActive(true);
+    }
+    else{
+      console.error("Couldn`t open widndow with call");
+    }
+
   };
 
+
+  const handleEndVideoCall = () => {
+    setIsCallActive(false); 
+    console.log("kurwaa CHUJJJ");
+  };
 
 
   return (
@@ -147,7 +172,7 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
         ></i>
         <i
           style={{ cursor: 'pointer' }}
-          onClick={()=>handleGenerateAgoraToken()}
+          onClick={()=>handleJoinVideoCall()}
         >Video call</i>
       </div>
 
@@ -187,6 +212,16 @@ const ChatWindow = ({ chat, token, baseURL, availableUsers }) => {
         handleSubmit={handleAddUsers}
         errorMessage={errorMessage}
       />
+
+      {/* <VideoCallModal 
+        channelName={chat.name}
+        userId={currentUserId}
+        showVideoCall={showVideoCall}
+        onCallEnd={handleEndVideoCall}
+        chatId={chat.id}
+        baseURL={baseURL}
+        token={token}
+      /> */}
 
     </div>
   );

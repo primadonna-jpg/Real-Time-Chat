@@ -1,62 +1,82 @@
 import React, { useState, useEffect } from "react";
 import { createClient, createMicrophoneAndCameraTracks } from "agora-rtc-sdk-ng";
+import { VideoPlayer } from "./VideoPlayer";
+
+const client = createClient({ mode: "rtc", codec: "vp8" });
 
 const VideoCall = ({ appId, channelName, token, userId, onCallEnd }) => {
-  const [client] = useState(() => createClient({ mode: "rtc", codec: "vp8" }));
-  const [localTracks, setLocalTracks] = useState([]);
+  //const [client] = useState(() => createClient({ mode: "rtc", codec: "vp8" }));
+  // const [isConnected, setIsConnected] = useState(false);
+  // const [hasJoined, setHasJoined] = useState(false);  // Nowe, aby śledzić, czy użytkownik już dołączył
   const [remoteUsers, setRemoteUsers] = useState([]);
+  const [localTracks, setLocalTracks] = useState([]);
 
-    useEffect(() => {
-        const init = async () => {
-            try {
-                // Dołączanie do kanału
-                await client.join(appId, channelName, token, userId);
+  const handleUserJoined = async (user, mediaType)=>{
+    await client.subscribe(user,mediaType);
 
-                // Tworzenie lokalnych strumieni audio i wideo
-                const tracks = await createMicrophoneAndCameraTracks();
-                setLocalTracks(tracks);
-                await client.publish(tracks);
+    if(mediaType==='video'){
+      setRemoteUsers((prev)=>[...prev,user]);
+    }
 
-                // Obsługa zdarzeń użytkowników
-                client.on("user-published", async (user, mediaType) => {
-                    await client.subscribe(user, mediaType);
-                    if (mediaType === "video") {
-                        user.videoTrack.play(`remote-${user.uid}`);
-                    }
-                    setRemoteUsers((prev) => [...prev, user]); // Dodaj użytkownika do listy
-                });
+    if(mediaType==='audio'){
+      user.audioTrack.play();
+    }
+  };
 
-                client.on("user-unpublished", (user) => {
-                    // Usuń strumień, jeśli użytkownik opuścił połączenie
-                    setRemoteUsers((prev) => prev.filter((u) => u !== user));
-                });
-            } catch (error) {
-            console.error("Failed to join channel:", error);
-            }
-        };
+  const handleUserLeft= async (user)=>{
+    setRemoteUsers((prev)=> prev.filter((u)=> u.uid !== user.uid));
+  }
 
-        init();
 
-        return () => {
-        // Wyczyść zasoby przy opuszczaniu
-        client.leave();
-        localTracks.forEach((track) => track.close());
-        };
-    }, [client, appId, channelName, token, userId]);
+  useEffect(()=>{
+    client.on('user-published', handleUserJoined)
+    client.on('user-left',handleUserLeft)
 
-    return (
-        <div>
-        <div id="local-player" style={{ width: "400px", height: "300px" }}></div>
-        {remoteUsers.map((user) => (
-            <div
-            key={user.uid}
-            id={`remote-${user.uid}`}
-            style={{ width: "400px", height: "300px" }}
-            ></div>
+    client.join(appId, channelName, token, userId)
+    .then((uid)=>{
+      return createMicrophoneAndCameraTracks().then((tracks) => [uid, tracks]);
+    })
+    .then(([uid, tracks])=>{
+      const [audioTrack, videoTrack] = tracks; //index 0 audio index 1 video
+      setLocalTracks(tracks);
+      setRemoteUsers((prev) => [...prev,{
+        uid,
+        videoTrack,
+        audioTrack
+      }]);
+      client.publish(tracks);
+    })
+
+    return () => {
+      // Zatrzymanie i zamknięcie lokalnych ścieżek
+      localTracks.forEach((track) => {
+        track.stop();
+        track.close();
+      });
+  
+      // Odłączenie eventów
+      client.off("user-published", handleUserJoined);
+      client.off("user-left", handleUserLeft);
+
+      // Unpublish i opuszczenie kanału
+      client.unpublish(localTracks).then(() => client.leave());
+    };
+  },[]);
+
+  
+
+  return (
+    <div style={{display:'flex', justifyContent:'center'}}>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(2, 200px)'}}>
+        {remoteUsers.map((remoteUser)=>(
+          <VideoPlayer
+          key={remoteUser.uid}
+          remoteUser={remoteUser}
+          />
         ))}
-        <button onClick={() => onCallEnd()}>End Call</button>
-        </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default VideoCall;
