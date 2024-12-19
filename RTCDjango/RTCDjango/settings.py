@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'daphne',
+   
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -65,7 +66,12 @@ MIDDLEWARE = [
 #     "http://192.168.100.2:3000",
 # ]
 CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'ngrok-skip-browser-warning',  
+    # inne nagłówki, 
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

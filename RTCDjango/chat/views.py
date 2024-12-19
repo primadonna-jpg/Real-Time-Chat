@@ -206,7 +206,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     
     #http://127.0.0.1:8000/chat/rooms/{room.id}/generate_agora_token/
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
-    def generate_agora_token(self, request, pk=None):
+    def generate_video_call_token(self, request, pk=None):
         app_id = CONFIG['app_id']
         app_certificate = CONFIG['app_certificate']
         expiration_time_in_seconds = 3600  # Token ważny przez 1 godzinę
@@ -216,7 +216,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
 
         chat_room = self.get_object()
         user_id = self.request.user.id  
-        channel_name = chat_room.name  # Kanał będzie nazwą pokoju czatu
+        channel_name = str(chat_room.id)  #id nazwą  //chat_room.name
         role = 1 # 1-host 2-audiance
 
         token = RtcTokenBuilder.buildTokenWithUid(
@@ -240,7 +240,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                     'video_call_token': token
                 }
             )
-        return Response({'agora_token': token}, status=status.HTTP_200_OK)
+        return Response({'video_call_token': token, 'uid':user_id}, status=status.HTTP_200_OK)
 
 
 

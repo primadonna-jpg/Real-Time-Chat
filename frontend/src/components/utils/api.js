@@ -2,6 +2,7 @@
 const BASE_HEADERS = (token) => ({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
+    'ngrok-skip-browser-warning':  '69420'
 });
   
 export const fetchChats = (baseURL, token) => 
@@ -24,8 +25,8 @@ fetch(`${baseURL}/chat/messages/?room_id=${chatId}`, {
 
 
 
-export const generateAgoraToken = (baseURL,token,chatId) =>
-fetch(`${baseURL}/chat/rooms/${chatId}/generate_agora_token/`, {
+export const generateVideoCallToken = (baseURL,token,chatId) =>
+fetch(`${baseURL}/chat/rooms/${chatId}/generate_video_call_token/`, {
     method: 'GET',
     headers: BASE_HEADERS(token),
 }).then((res) => res.json());

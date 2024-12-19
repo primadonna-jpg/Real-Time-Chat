@@ -1,0 +1,109 @@
+import React, { useState, useEffect } from "react";
+import { createClient, createMicrophoneAndCameraTracks } from "agora-rtc-sdk-ng";
+
+const VideoCall = ({ appId, channelName, token, userId, onCallEnd }) => {
+  const [client] = useState(() => createClient({ mode: "rtc", codec: "vp8" }));
+  const [localTracks, setLocalTracks] = useState([]);
+  const [remoteUsers, setRemoteUsers] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);  // Nowe, aby śledzić, czy użytkownik już dołączył
+
+  useEffect(() => {
+    const initCall = async () => {
+      try {
+        // Jeśli użytkownik już dołączył, nie próbuj ponownie
+        if (hasJoined) return;
+
+        // Dołączanie do kanału
+        await client.join(appId, channelName, token, userId);
+
+        // Po dołączeniu, ustaw status na "connected"
+        setHasJoined(true);
+        setIsConnected(true);
+
+        // Tworzenie lokalnych strumieni
+        const tracks = await createMicrophoneAndCameraTracks();
+        setLocalTracks(tracks);
+
+        // Publikowanie lokalnych strumieni
+        if (isConnected) {
+          await client.publish(tracks);
+        }
+
+        // Nasłuchiwanie na pojawiające się strumienie zdalnych użytkowników
+        client.on("user-published", async (user, mediaType) => {
+          await client.subscribe(user, mediaType);
+          if (mediaType === "video") {
+            user.videoTrack.play(`remote-${user.uid}`);
+          }
+          setRemoteUsers((prev) => [...prev, user]);
+        });
+
+        // Nasłuchiwanie na znikających użytkowników
+        client.on("user-unpublished", (user) => {
+          setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+        });
+      } catch (error) {
+        console.error("Błąd przy dołączaniu do kanału:", error);
+        // Obsługuje błędy połączenia i umożliwia ponowne spróbowanie
+        if (error.code === 'OPERATION_ABORTED') {
+          console.warn("Połączenie zostało anulowane, spróbuj ponownie.");
+        }
+        onCallEnd();
+      }
+    };
+
+    initCall();
+
+    return () => {
+      // Czyszczenie po zakończeniu połączenia
+      if (client) {
+        localTracks.forEach((track) => track.close());
+        client.leave();
+      }
+    };
+  }, [client, appId, channelName, token, userId, localTracks, onCallEnd, isConnected, hasJoined]);
+
+  return (
+    <div>
+      {/* Odtwarzanie lokalnego wideo */}
+      <div
+        id="local-player"
+        style={{ width: "400px", height: "300px", background: "#000" }}
+      >
+        {localTracks[1] && localTracks[1].play("local-player")} {/* Odtwarzanie wideo lokalnego użytkownika */}
+      </div>
+
+      {/* Odtwarzanie zdalnych strumieni wideo */}
+      {remoteUsers.map((user) => (
+        <div
+          key={user.uid}
+          id={`remote-${user.uid}`}
+          style={{ width: "400px", height: "300px", background: "#000" }}
+        >
+          {user.videoTrack ? (
+            <video
+              id={`remote-${user.uid}`}
+              style={{ width: "100%", height: "100%" }}
+              autoPlay
+              playsInline
+              ref={(videoElement) => {
+                if (videoElement && user.videoTrack) {
+                  user.videoTrack.play(videoElement);
+                }
+              }}
+            />
+          ) : (
+            <p>Loading video...</p> // W przypadku, gdy wideo nie jest dostępne
+          )}
+        </div>
+      ))}
+
+      <button onClick={onCallEnd} style={{ marginTop: "10px" }}>
+        End Call
+      </button>
+    </div>
+  );
+};
+
+export default VideoCall;

@@ -7,9 +7,11 @@ export const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   //const baseURL = "http://127.0.0.1:8000";
   const baseURL = "http://192.168.100.55:8000";  //do
+  //const baseURL = "https://6b38-77-253-153-78.ngrok-free.app";  //ngrok
   //const baseURL = "http://192.168.211.160:8000";
   const [token, setToken] = useState(null);
   const [currentUserUsername, setUserUsername] =useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,9 +19,10 @@ const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('access');
     if (storedToken) {
       setToken(storedToken);
-      decodeUsername(storedToken);
+      decodeAuthToken(storedToken);
     }
     setLoading(false);
+    
   }, []);
 
   const setNewToken = (newToken) => {
@@ -32,12 +35,18 @@ const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
-  const decodeUsername = (token) => {
-    const decodedToken = jwtDecode(token);
-    setUserUsername( decodedToken.username || 'Unknown');
-     
+  const decodeAuthToken = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      setUserUsername(decodedToken.username || 'Unknown');
+      setCurrentUserId(decodedToken.user_id);
+    } catch (error) {
+      console.error('Błąd dekodowania tokenu:', error);
+      setUserUsername('Unknown');
+      setCurrentUserId(null);
+    }
+    //console.log('ZALOGOWANY USER ', currentUserId);
   };
-
 
   //nie renderuje dzieci dopoki ładuje
   if(loading){
@@ -45,7 +54,7 @@ const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ token,currentUserUsername,baseURL, setNewToken, logout }}>
+    <AuthContext.Provider value={{ token,currentUserUsername,currentUserId ,baseURL, setNewToken, logout }}>
       {children}
     </AuthContext.Provider>
   );

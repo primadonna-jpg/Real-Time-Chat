@@ -7,7 +7,7 @@ import { AuthContext } from './utils/AuthProvider';
 
 
 const ChatList = () => {
-  const { token, currentUserUsername, baseURL } = useContext(AuthContext);
+  const { token, currentUserUsername, baseURL,currentUserId } = useContext(AuthContext);
   const { chats, availableUsers, setChats } = useChat(baseURL, token, currentUserUsername);
   const [selectedChat, setSelectedChat] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -15,6 +15,7 @@ const ChatList = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+  const [isCallActive, setIsCallActive] = useState(false);
 
   
   const handleCreateChat = () => {
@@ -78,7 +79,16 @@ const ChatList = () => {
       {/* Okno czatu */}
       <div style={{ flex: 1, marginLeft: '3vw', marginRight: '3vw' }}>
         {selectedChat ? (
-          <ChatWindow chat={selectedChat} token={token} currentUserUsername={currentUserUsername} baseURL={baseURL} availableUsers={availableUsers} />
+          <ChatWindow
+            chat={selectedChat} 
+            token={token} 
+            currentUserUsername={currentUserUsername}
+            currentUserId={currentUserId}
+            baseURL={baseURL} 
+            availableUsers={availableUsers} 
+            isCallActive={isCallActive}
+            setIsCallActive={setIsCallActive}
+           />
         ) : (
           <div className="card shadow mb-4">
             <div className="card-body">
