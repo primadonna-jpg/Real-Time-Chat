@@ -27,26 +27,36 @@ const Header = () => {
 
   return (
     <header>
-      <nav className="navbar navbar-expand navbar-light bg-white shadow">
-        <div className="container-fluid">
-          <div className="ml-4 navbar-left">
-            {token ? (
-              <div className="d-flex align-items-center">
-                <span className="mr-3 h5 text-gray-600">{username}</span>
-                <button 
-                  className="btn btn-outline-danger btn-sm" 
-                  onClick={() => handleLogout()}
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <span className="h5 text-gray-600" >Login</span>
-            )}
-          </div>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div className="container">
+        <div className="navbar-brand d-flex align-items-center">
+          <h1 className="h5 text-gray-800 mb-0">Real Time Communicator</h1>
         </div>
-      </nav>
-    </header>
+        <div className="d-flex align-items-center ml-auto">
+          {token ? (
+            <div className="d-flex align-items-center">
+              <span className="mr-3 text-gray-600 font-weight-bold">
+                {username}
+              </span>
+              <button
+                className="btn btn-danger btn-sm rounded-pill"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn btn-primary btn-sm rounded-pill"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+          )}
+        </div>
+      </div>
+    </nav>
+  </header>
   );
 };
 

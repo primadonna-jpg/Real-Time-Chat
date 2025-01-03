@@ -66,13 +66,10 @@ const VideoCall = ({ appId, channelName, token, userId, onCallEnd }) => {
   
 
   return (
-    <div style={{display:'flex', justifyContent:'center'}}>
-      <div style={{display:'grid', gridTemplateColumns:'repeat(2, 200px)'}}>
-        {remoteUsers.map((remoteUser)=>(
-          <VideoPlayer
-          key={remoteUser.uid}
-          remoteUser={remoteUser}
-          />
+    <div className="video-call-container">
+      <div className="video-grid">
+        {remoteUsers.map((remoteUser) => (
+          <VideoPlayer key={remoteUser.uid} remoteUser={remoteUser} />
         ))}
       </div>
     </div>
