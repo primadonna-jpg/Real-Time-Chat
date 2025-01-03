@@ -7,8 +7,8 @@ export const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   //const baseURL = "http://127.0.0.1:8000";
   const baseURL = "http://192.168.100.55:8000";  //do
-  //const baseURL = "https://6b38-77-253-153-78.ngrok-free.app";  //ngrok
-  //const baseURL = "http://192.168.211.160:8000";
+  //const baseURL = "https://ae8c-83-30-240-174.ngrok-free.app";  //ngrok
+  //const baseURL ='http://192.168.1.34:8000'; //babcia
   const [token, setToken] = useState(null);
   const [currentUserUsername, setUserUsername] =useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);

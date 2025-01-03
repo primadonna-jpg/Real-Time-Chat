@@ -53,20 +53,27 @@ const VideoCallPage = () => {
   }
 
   return (
-      <div>
-        <h1>Video Call for Chat ID: {chatId}</h1>
-        
-          <VideoCall
-            appId="bbef1dc19fdf472586b741cfc97ad4b5" // Twój appId
-            channelName={String(chatId)}
-            token={videoCallToken}
-            userId={currentUserId} 
-            onCallEnd={handleEndCall}
-          />
-        <button onClick={handleEndCall} style={{ marginTop: '20px', padding: '10px', backgroundColor: 'red', color: 'white', border: 'none', cursor: 'pointer' }}>
-          End Call
-        </button>
-      </div>
+    <div className="video-call-page">
+    <header className="video-call-header">
+      <h1>Video Call - Chat ID: {chatId}</h1>
+    </header>
+
+    <main className="video-call-main">
+      <VideoCall
+        appId="bbef1dc19fdf472586b741cfc97ad4b5"
+        channelName={String(chatId)}
+        token={videoCallToken}
+        userId={currentUserId}
+        onCallEnd={handleEndCall}
+      />
+    </main>
+
+    <footer className="video-call-footer">
+      <button className="end-call-btn" onClick={handleEndCall}>
+        End Call
+      </button>
+    </footer>
+  </div>
   );
 };
 

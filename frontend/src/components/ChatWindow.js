@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import UserSelectModal from './UserSelectModal';
-import VideoCallModal from './VideoCallModal';
 import  {NotificationContext}  from './utils/NotificationProvider';
 import { fetchMessages, addUsers, generateVideoCallToken } from './utils/api';
-import { useNavigate } from 'react-router-dom'; 
+ 
 
 const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCallActive, setIsCallActive }) => {
   const [messages, setMessages] = useState([]);
@@ -15,8 +14,9 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
   const [showModal, setShowModal] = useState(false); //modal
   const [newAvailableUsers, setNewAvailableUsers] = useState([]);
   const [chatNameToDisplay, setChatNameToDisplay] = useState('');
-  const { newChatNotifications } = useContext(NotificationContext);
-  
+  const { newChatNotifications, activeCallNotifications } = useContext(NotificationContext);
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
+
   //zmiana wyswietlanej nazwy
   useEffect(()=>{
     newChatNotifications.forEach((newChat)=>{
@@ -48,7 +48,6 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     };
   };
 
-
   useEffect(() => {
     fetchMessages(baseURL,token,chat.id)
     .then((mess)=>setMessages(mess))
@@ -56,7 +55,6 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
       console.log(error);
     });
 
-    
     setChatNameToDisplay(chat.name);
     if(availableUsers){
       setNewAvailableUsers(availableUsers);
@@ -74,7 +72,6 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     console.log(chat);
     setMessages([]); 
 
-    
     return () => {
       ws.current.close();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -90,6 +87,20 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     }
   }, [messages]);  // Wywołuje się za każdym razem, gdy zmieniają się wiadomości
 
+
+
+  useEffect(()=>{
+    setIsIncomingCall(false);
+    activeCallNotifications.forEach((activeCall)=>{
+      if(activeCall.chat.id === chat.id){
+        console.log("Ktoś tu dzwoni");
+        setIsIncomingCall(true);
+      }
+    });
+  },[chat,activeCallNotifications]);
+
+
+
   const handleSendMessage = () => {
     if (newMessage.trim() && ws.current) {
       // websocket send
@@ -100,6 +111,8 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     }
   };
 
+
+
   const handleKeyDown = (event) => {
     // Funkcja obsługująca wciśnięcie Enter
     if (event.key === 'Enter') {
@@ -108,8 +121,11 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     }
   };
 
+
+
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
 
 
   const handleAddUsers = () => {
@@ -155,74 +171,70 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
   };
 
 
+
   const handleEndVideoCall = () => {
     setIsCallActive(false); 
-    console.log("kurwaa CHUJJJ");
+    setIsIncomingCall(false);
+    console.log("HANDLE VIDEO CALL END");
   };
 
 
+  const renderMessages = () =>
+    messages.map((msg, index) => (
+      <div
+        key={index}
+        className={`chat-bubble ${msg.username === currentUserId ? 'chat-bubble-right' : 'chat-bubble-left'}`}
+      >
+        <span className="chat-bubble-username">{msg.username}</span>
+        <p>{msg.content}</p>
+      </div>
+  ));
+
   return (
-    <div className="card shadow mb-4 " style={{ maxwidth: '50vw', minWidth: '40vw'}} >
-      <div className="card-header py-3">
-        <h6 className="m-0 font-weight-bold text-primary">Chat with {chatNameToDisplay}</h6>
-        <i
-          className="fas fa-plus"
-          style={{ cursor: 'pointer' }}
-          onClick={()=>handleShowModal()}
-        ></i>
-        <i
-          style={{ cursor: 'pointer' }}
-          onClick={()=>handleJoinVideoCall()}
-        >Video call</i>
+    <div className="chat-window-container">
+      <div className="chat-header">
+        <h6 className="chat-title">Chat with {chatNameToDisplay}</h6>
+        <div className="header-buttons">
+          <button className="add-users-btn" onClick={() => setShowModal(true)}>
+            <i className="fas fa-user-plus"></i>
+          </button>
+          <button
+            className={`video-call-btn ${isIncomingCall ? "incoming-call" : ""} ${
+              isCallActive ? "active" : ""
+            }`}
+            onClick={handleJoinVideoCall}
+            disabled={isCallActive}
+          >
+            <i className={isCallActive ? "fas fa-video-slash" : "fas fa-video"}></i>
+          </button>
+        </div>
       </div>
 
-      <div className="card-body chat-window" ref={chatWindowRef}>
-        <ul className="list-group text-list">
-          {messages.map((message, index) => (
-            <li 
-              key={index} 
-              className={`list-group-item`}>
-              <strong>{message.username}:</strong> {message.content}
-            </li>
-          ))}
-        </ul>
+      <div className="chat-body" ref={chatWindowRef}>
+        {renderMessages()}
       </div>
 
-      <div className="card-footer d-flex">
+      <div className="chat-footer">
         <input
           type="text"
-          className="form-control"
+          className="chat-input"
           placeholder="Type your message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={handleKeyDown}   
+          onKeyDown={handleKeyDown}
         />
-        <button className="btn btn-primary ml-2" onClick={handleSendMessage}>
-          Send
-        </button>
+        <button className="chat-send-btn" onClick={handleSendMessage}>Send</button>
       </div>
 
-      {/* Modal do wyboru użytkowników */}
       <UserSelectModal
-        availableUsers={newAvailableUsers}
+        availableUsers={availableUsers}
         selectedUsers={selectedUsers}
         setSelectedUsers={setSelectedUsers}
         showModal={showModal}
-        handleClose={handleCloseModal}
+        handleClose={() => setShowModal(false)}
         handleSubmit={handleAddUsers}
         errorMessage={errorMessage}
       />
-
-      {/* <VideoCallModal 
-        channelName={chat.name}
-        userId={currentUserId}
-        showVideoCall={showVideoCall}
-        onCallEnd={handleEndVideoCall}
-        chatId={chat.id}
-        baseURL={baseURL}
-        token={token}
-      /> */}
-
     </div>
   );
 };

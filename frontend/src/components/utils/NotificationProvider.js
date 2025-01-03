@@ -28,7 +28,7 @@ const NotificationProvider = ({ children }) => {
                   const filtered = prev.filter(notification => notification.chat.id !== data.chat.id);
                   return [...filtered, data]; // Dodaj nowe powiadomienie
                 });
-                //console.log(data);
+                console.log(data);
             }
             
         };
