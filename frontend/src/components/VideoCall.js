@@ -4,13 +4,16 @@ import { VideoPlayer } from "./VideoPlayer";
 
 const client = createClient({ mode: "rtc", codec: "vp8" });
 
-const VideoCall = ({ appId, channelName, token, userId, onCallEnd }) => {
+const VideoCall = ({ appId, channelName, token, userId,isMicMuted, isCamOff ,userName, onCallEnd }) => {
   //const [client] = useState(() => createClient({ mode: "rtc", codec: "vp8" }));
   // const [isConnected, setIsConnected] = useState(false);
   // const [hasJoined, setHasJoined] = useState(false);  // Nowe, aby śledzić, czy użytkownik już dołączył
   const [remoteUsers, setRemoteUsers] = useState([]);
   const [localTracks, setLocalTracks] = useState([]);
+  const audioTrack = localTracks[0];
+  const videoTrack = localTracks[1];
 
+  
   const handleUserJoined = async (user, mediaType)=>{
     await client.subscribe(user,mediaType);
 
@@ -26,6 +29,17 @@ const VideoCall = ({ appId, channelName, token, userId, onCallEnd }) => {
   const handleUserLeft= async (user)=>{
     setRemoteUsers((prev)=> prev.filter((u)=> u.uid !== user.uid));
   }
+
+
+  useEffect(() => {
+    if (audioTrack) {
+      audioTrack.setEnabled(!isMicMuted); // Włącz/wyłącz mikrofon
+    }
+    if (videoTrack) {
+      videoTrack.setEnabled(!isCamOff); // Włącz/wyłącz kamerę
+    }
+  }, [isMicMuted, isCamOff, audioTrack, videoTrack]);
+
 
 
   useEffect(()=>{

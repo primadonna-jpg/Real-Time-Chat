@@ -5,6 +5,7 @@ export const VideoPlayer = ({remoteUser}) => {
 
     useEffect(()=>{
         remoteUser.videoTrack.play(ref.current);
+        console.log("remoteuser",remoteUser);
     },[]);
 
 
