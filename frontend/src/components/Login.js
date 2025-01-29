@@ -26,9 +26,9 @@ const Login = () => {
       if (response.ok) {
         setNewToken(data.access);// authprovider
         localStorage.setItem('refresh', data.refresh);
-        navigate('/chatlist');   // przekierowanie po logowaniu
+        navigate('/chatlist'); 
       } else {
-        setError(Object.values(data)[0] || 'Logowanie nieudane');
+        setError(Object.values(data)[0] || 'Login failed');
       }
     } catch (error) {
       setError(`${error.message}`);

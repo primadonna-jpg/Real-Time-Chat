@@ -209,7 +209,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     def generate_video_call_token(self, request, pk=None):
         app_id = CONFIG['app_id']
         app_certificate = CONFIG['app_certificate']
-        expiration_time_in_seconds = 3600  # Token ważny przez 1 godzinę
+        expiration_time_in_seconds = 3600  
         current_timestamp = int(time.time())
 
         privilege_expired = current_timestamp + expiration_time_in_seconds

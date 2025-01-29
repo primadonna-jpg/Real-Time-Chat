@@ -223,7 +223,9 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button className="chat-send-btn" onClick={handleSendMessage}>Send</button>
+        <button className="chat-send-btn" onClick={handleSendMessage}>
+          <i className="fas fa-paper-plane"></i>
+        </button>
       </div>
 
       <UserSelectModal

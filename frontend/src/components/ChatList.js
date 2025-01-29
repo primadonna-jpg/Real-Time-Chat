@@ -44,7 +44,7 @@ const ChatList = () => {
           <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
             <h6 className="m-0 font-weight-bold text-primary mb-2 mb-sm-0">Your Chats</h6>
             <button className="btn btn-primary btn-sm" onClick={handleShowModal}>
-              <i className="fas fa-plus"></i> New Chat
+              <i className="fas fa-plus"></i> 
             </button>
           </div>
         </div>
