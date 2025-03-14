@@ -49,32 +49,48 @@ const ChatList = () => {
           </div>
         </div>
         <div className="card-body">
-          {chats.length > 0 ? (
-            <ul className="list-group">
-              {chats.map((chat) => (
-                <li
-                  key={chat.id}
-                  className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                  style={{ cursor: "pointer" }}
+        {chats.length > 0 ? (
+          <ul className="list-group">
+            {chats.map((chat) => (
+              <li
+                key={chat.id}
+                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded shadow-sm mb-2"
+                style={{ cursor: "pointer", padding: "10px 15px" }}
+              >
+                {/* Ikona czatu i nazwa */}
+                <div
+                  onClick={() => setSelectedChat(chat)}
+                  className="d-flex align-items-center"
+                  style={{ flexGrow: 1 }}
                 >
-                  <div onClick={() => setSelectedChat(chat)} className="d-flex align-items-center" style={{ flexGrow: 1 }}>
-                    <span>{chat.name}</span>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <div style={{ borderLeft: "1px solid #ccc", height: "1.5em", marginLeft: "0.3em", marginRight: "0.3em" }}></div>
-                    <i
-                      className="fas fa-trash-alt text-danger"
-                      onClick={() => handleLeaveChatRoom(chat.id)}
-                      style={{ cursor: "pointer" }}
-                    ></i>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  <i className="fas fa-comments text-primary me-2"></i>
+                  <span className="fw-bold">{chat.name}</span>
+                </div>
+
+                {/* Separator i ikona usuwania */}
+                <div className="d-flex align-items-center">
+                  <div
+                    style={{
+                      borderLeft: "1px solid #ccc",
+                      height: "1.5em",
+                      margin: "0 0.5em",
+                    }}
+                  ></div>
+                  <i
+                    className="fas fa-trash-alt text-danger"
+                    onClick={() => handleLeaveChatRoom(chat.id)}
+                    style={{ cursor: "pointer" }}
+                  ></i>
+                </div>
+              </li>
+            ))}
+          </ul>
           ) : (
-            <p className="text-center text-muted mt-3">No chats available. Start a new chat!</p>
+            <p className="text-center text-muted mt-3">
+              No chats available. Start a new chat!
+            </p>
           )}
-        </div>
+          </div>
       </div>
 
       {/* Okno czatu */}
