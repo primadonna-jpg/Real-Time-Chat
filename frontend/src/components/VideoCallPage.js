@@ -89,9 +89,9 @@ const VideoCallPage = () => {
         <button className="control-btn" onClick={handleToggleMic}>
           {isMicMuted ? <i className="fas fa-microphone-slash"></i> : <i className="fas fa-microphone"></i>}
         </button>
-        {/* <button className="control-btn" onClick={handleToggleCam}>
+        <button className="control-btn" onClick={handleToggleCam}>
           {isCamOff ? <i className="fas fa-video-slash"></i> : <i className="fas fa-video"></i>}
-        </button> */}
+        </button>
         <button className="control-btn end-call-btn" onClick={handleEndCall}>
           <i className="fas fa-phone-slash"></i>
         </button>

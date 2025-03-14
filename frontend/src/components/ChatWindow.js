@@ -38,7 +38,7 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     // Obsługa odbierania wiadomości
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username }]);
+      setMessages(prevMessages => [...prevMessages, { content: data.message, username: data.username, user: data.user_id }]);
     };
     ws.current.onopen = () => {
       console.log('Chat WebSocket connected');
@@ -49,6 +49,7 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
   };
 
   useEffect(() => {
+    console.log('ZALOGOWANY USER ', currentUserId); ///////////////
     fetchMessages(baseURL,token,chat.id)
     .then((mess)=>setMessages(mess))
     .catch(error=>{
@@ -69,7 +70,6 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    console.log(chat);
     setMessages([]); 
 
     return () => {
@@ -103,7 +103,6 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
 
   const handleSendMessage = () => {
     if (newMessage.trim() && ws.current) {
-      // websocket send
       ws.current.send(JSON.stringify({
         message: newMessage
       }));
@@ -117,7 +116,7 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     // Funkcja obsługująca wciśnięcie Enter
     if (event.key === 'Enter') {
       event.preventDefault();  // opcjonalnie, aby zapobiec nowej linii
-      handleSendMessage();      // wysyłanie wiadomości
+      handleSendMessage();      
     }
   };
 
@@ -155,7 +154,7 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     const childWindow = window.open(
       `/videoCall/${chat.id}`,
       "_blank",
-      "width=800,height=600,location=no,toolbar=no,menubar=no"
+      "width=600,height=400,location=no,toolbar=no,menubar=no"
     );
     
     if(childWindow){
@@ -183,7 +182,7 @@ const ChatWindow = ({ chat, token,currentUserId, baseURL, availableUsers, isCall
     messages.map((msg, index) => (
       <div
         key={index}
-        className={`chat-bubble ${msg.username === currentUserId ? 'chat-bubble-right' : 'chat-bubble-left'}`}
+        className={`chat-bubble ${msg.user === currentUserId ? 'chat-bubble-right' : 'chat-bubble-left'}`}
       >
         <span className="chat-bubble-username">{msg.username}</span>
         <p>{msg.content}</p>
